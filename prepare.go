@@ -2,10 +2,13 @@ package pipe
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
+	"runtime"
 )
 
 var (
+	errPrepareArgsLimitExceeded     = errors.New("number of arguments exceeded")
 	errPreparePassArgsLimitExceeded = errors.New("calling pipe.Pass() more than once")
 )
 
@@ -44,6 +47,11 @@ func (prepare *prepare) fnArgs() []reflect.Value {
 
 	if prepare.sequence > 0 && prepare.passArgsFlagCounter == 0 {
 		args = append(args, prepare.compoundResult)
+	}
+
+	if len(args) > prepare.applyFn.fnCandidateValue.Type().NumIn() {
+		fnName := runtime.FuncForPC(prepare.applyFn.fnCandidateValue.Pointer()).Name()
+		panic(fmt.Sprintf("sequence:%d fnName:%s | err:%v", prepare.sequence+1, fnName, errPrepareArgsLimitExceeded))
 	}
 
 	return args

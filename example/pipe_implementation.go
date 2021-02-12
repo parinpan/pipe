@@ -1,8 +1,8 @@
 package main
 
 import (
+	"fachr.in/pipe"
 	"fmt"
-	"github.com/parinpan/pipe"
 	"time"
 )
 
