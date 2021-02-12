@@ -8,6 +8,7 @@ import (
 )
 
 var (
+	errPrepareArgsDifferentType     = errors.New("given argument vs actual argument has different type")
 	errPrepareArgsLimitExceeded     = errors.New("number of arguments exceeded")
 	errPreparePassArgsLimitExceeded = errors.New("calling pipe.Pass() more than once")
 )
@@ -49,10 +50,24 @@ func (prepare *prepare) fnArgs() []reflect.Value {
 		args = append(args, prepare.compoundResult)
 	}
 
-	if len(args) > prepare.applyFn.fnCandidateValue.Type().NumIn() {
-		fnName := runtime.FuncForPC(prepare.applyFn.fnCandidateValue.Pointer()).Name()
-		panic(fmt.Sprintf("sequence:%d fnName:%s | err:%v", prepare.sequence+1, fnName, errPrepareArgsLimitExceeded))
-	}
+	prepare.checkArgumentsNumber(args)
+	prepare.checkArgumentsType(args)
 
 	return args
+}
+
+func (prepare *prepare) checkArgumentsNumber(receivedArgs []reflect.Value) {
+	if len(receivedArgs) > prepare.applyFn.fnCandidateValue.Type().NumIn() {
+		fnName := runtime.FuncForPC(prepare.applyFn.fnCandidateValue.Pointer()).Name()
+		panic(fmt.Sprintf("sequence:%d | fnName:%s | err:%v", prepare.sequence+1, fnName, errPrepareArgsLimitExceeded))
+	}
+}
+
+func (prepare *prepare) checkArgumentsType(receivedArgs []reflect.Value) {
+	for i := 0; i < len(receivedArgs); i++ {
+		if receivedArgs[i].Kind() != prepare.applyFn.fnCandidateValue.Type().In(i).Kind() {
+			fnName := runtime.FuncForPC(prepare.applyFn.fnCandidateValue.Pointer()).Name()
+			panic(fmt.Sprintf("arg-sequence:%d | fnName:%s | err:%v", i+1, fnName, errPrepareArgsDifferentType))
+		}
+	}
 }
