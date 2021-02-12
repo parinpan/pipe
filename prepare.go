@@ -30,6 +30,8 @@ func (prepare *prepare) fnArgs() []reflect.Value {
 
 	if prepare.sequence > 0 && len(prepare.applyFn.args) == 0 {
 		args = append(args, prepare.compoundResult)
+		prepare.checkArgumentsNumber(args)
+		prepare.checkArgumentsType(args)
 		return args
 	}
 
