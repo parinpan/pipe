@@ -8,15 +8,17 @@ import (
 )
 
 var (
-	errPrepareArgsDifferentType     = errors.New("given argument vs actual argument has different type")
-	errPrepareArgsLimitExceeded     = errors.New("number of arguments exceeded")
-	errPreparePassArgsLimitExceeded = errors.New("calling pipe.Pass() more than once")
+	errPrepareArgsDifferentType                   = errors.New("given argument vs actual argument has different type")
+	errPrepareArgsLimitExceeded                   = errors.New("number of arguments exceeded")
+	errPreparePassArgsLimitExceeded               = errors.New("calling pipe.Pass() more than once")
+	errPreparePassArgsAcceptDifferentArgumentType = errors.New("pipe.Pass(...) function accepts different compound return value in the argument")
 )
 
 type prepare struct {
 	applyFn        *applyFn
 	compoundResult reflect.Value
 
+	passArgs            *passArgs
 	sequence            int
 	passArgsFlagCounter int
 }
@@ -36,9 +38,10 @@ func (prepare *prepare) fnArgs() []reflect.Value {
 	}
 
 	for _, arg := range prepare.applyFn.args {
-		if _, ok := arg.(PassArgs); ok {
+		if argValue, ok := arg.(*passArgs); ok {
 			prepare.passArgsFlagCounter++
-			args = append(args, prepare.compoundResult)
+			prepare.passArgs = argValue
+			args = append(args, prepare.prepareCompoundResult(prepare.compoundResult))
 		} else {
 			args = append(args, reflect.ValueOf(arg))
 		}
@@ -56,6 +59,31 @@ func (prepare *prepare) fnArgs() []reflect.Value {
 	prepare.checkArgumentsType(args)
 
 	return args
+}
+
+func (prepare *prepare) prepareCompoundResult(compoundResult reflect.Value) reflect.Value {
+	if _, isEmptyFnCandidate := prepare.passArgs.fnCandidate.Interface().(emptyFnCandidate); isEmptyFnCandidate {
+		return compoundResult
+	}
+
+	prepare.checkPassArgs()
+
+	return prepare.passArgs.fnCandidate.Call([]reflect.Value{compoundResult})[0]
+}
+
+func (prepare *prepare) checkPassArgs() {
+	panicFn := func(err error) {
+		fnName := runtime.FuncForPC(prepare.applyFn.fnCandidateValue.Pointer()).Name()
+		panic(fmt.Sprintf("sequence:%d | fnName:%s | err:%v", prepare.sequence+1, fnName, err))
+	}
+
+	if err := prepare.passArgs.validateDeclaration(); err != nil {
+		panicFn(err)
+	}
+
+	if prepare.compoundResult.Kind() != prepare.passArgs.fnCandidate.Type().In(0).Kind() {
+		panicFn(errPreparePassArgsAcceptDifferentArgumentType)
+	}
 }
 
 func (prepare *prepare) checkArgumentsNumber(receivedArgs []reflect.Value) {
