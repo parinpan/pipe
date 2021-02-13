@@ -1,3 +1,3 @@
-module fachr.in/pipe
+module github.com/parinpan/pipe
 
 go 1.15

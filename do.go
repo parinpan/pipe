@@ -25,8 +25,8 @@ func (do *do) validate() error {
 		return ErrPassArgsOnDoApplyFnFirstSeqNotAllowed
 	}
 
-	for _, applyFn := range do.applyFns {
-		if err := applyFn.validateDeclaration(); err != nil {
+	for applyFnSeq, applyFn := range do.applyFns {
+		if err := applyFn.validateDeclaration(applyFnSeq); err != nil {
 			return err
 		}
 	}

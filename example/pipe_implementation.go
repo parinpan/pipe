@@ -1,14 +1,15 @@
 package main
 
 import (
-	"fachr.in/pipe"
 	"fmt"
+	"github.com/parinpan/pipe"
 	"time"
 )
 
 type Food struct {
-	Name  string
-	Price int64
+	Name   string
+	Price  int
+	Rating int
 }
 
 type Restaurant struct {
@@ -28,12 +29,14 @@ var (
 			Location: "United States",
 			Foods: []Food{
 				{
-					Name:  "McFlurry",
-					Price: 5,
+					Name:   "McFlurry",
+					Price:  5,
+					Rating: 3,
 				},
 				{
-					Name:  "BigMac",
-					Price: 10,
+					Name:   "BigMac",
+					Price:  10,
+					Rating: 5,
 				},
 			},
 		},
@@ -44,12 +47,14 @@ var (
 			Location: "Indonesia",
 			Foods: []Food{
 				{
-					Name:  "Nachos",
-					Price: 5,
+					Name:   "Nachos",
+					Price:  5,
+					Rating: 3,
 				},
 				{
-					Name:  "Burrito",
-					Price: 10,
+					Name:   "Burrito",
+					Price:  10,
+					Rating: 5,
 				},
 				{
 					Name:  "Mexican Pizza",
@@ -60,23 +65,27 @@ var (
 	}
 )
 
-func getMcDonaldFromRestaurants(restaurants []Restaurant) Restaurant {
+func getRestaurants() []Restaurant {
+	return RestaurantList
+}
+
+func getFoodsWithFilter(price int, restaurants []Restaurant, rating int) []Food {
+	var foods []Food
+
 	for _, restaurant := range restaurants {
-		if restaurant.Name == "McDonald" {
-			return restaurant
+		for _, food := range restaurant.Foods {
+			if food.Price == price && food.Rating == rating {
+				foods = append(foods, food)
+			}
 		}
 	}
 
-	return Restaurant{}
-}
-
-func getFoodsFromRestaurant(restaurant Restaurant) []Food {
-	return restaurant.Foods
+	return foods
 }
 
 func getFoodWithHighestPrice(foods []Food) Food {
 	var selectedFood Food
-	var maximumPrice = int64(0)
+	var maximumPrice = 0
 
 	for _, food := range foods {
 		if food.Price > maximumPrice {
@@ -88,16 +97,34 @@ func getFoodWithHighestPrice(foods []Food) Food {
 	return selectedFood
 }
 
-func isFoodHasExactName(food Food, foodName string) bool {
-	return food.Name == foodName
+func getFoodPrices(foods []Food) []int {
+	var prices []int
+
+	for _, food := range foods {
+		prices = append(prices, food.Price)
+	}
+
+	return prices
+}
+
+func getFoodTotalPriceText(totalPrice int) string {
+	return fmt.Sprintf("The food total price is: $%d", totalPrice)
 }
 
 func main() {
 	result := pipe.Do(
-		pipe.Apply(getMcDonaldFromRestaurants, RestaurantList),
-		pipe.Apply(getFoodsFromRestaurant),
-		pipe.Apply(getFoodWithHighestPrice),
-		pipe.Apply(isFoodHasExactName, pipe.Pass(), "BigMac"))
+		pipe.Apply(getRestaurants),
+		pipe.Apply(getFoodsWithFilter, 10, pipe.Pass(), 5),
+		pipe.Apply(getFoodPrices),
+		pipe.Apply(getFoodTotalPriceText, pipe.Pass(func(prices []int) int {
+			var totalPrice = 0
+
+			for _, price := range prices {
+				totalPrice += price
+			}
+
+			return totalPrice
+		})))
 
 	fmt.Printf("%+v\n", result)
 }

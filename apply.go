@@ -24,12 +24,12 @@ type applyFn struct {
 	args             []interface{}
 }
 
-func (applyFn *applyFn) validateDeclaration() error {
+func (applyFn *applyFn) validateDeclaration(applyFnSequence int) error {
 	if applyFn.fnCandidateValue.Kind() != reflect.Func {
 		return errApplyNotAcceptFn
 	}
 
-	if applyFn.fnCandidateValue.Type().NumIn() == 0 {
+	if applyFn.fnCandidateValue.Type().NumIn() == 0 && applyFnSequence > 0 {
 		return errApplyNotAcceptArgs
 	}
 
