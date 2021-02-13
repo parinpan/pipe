@@ -6,10 +6,10 @@ import (
 )
 
 var (
-	ErrApplyNotAcceptFn   = errors.New("pipe.Apply(...) not accept function at the first arg")
-	ErrApplyNotAcceptArgs = errors.New("pipe.Apply(...) given function could not accept any arg")
-	ErrApplyReturnVoid    = errors.New("pipe.Apply(...) given function has void return value")
-	ErrApplyMultiReturn   = errors.New("pipe.Apply(...) given function has multiple return values")
+	errApplyNotAcceptFn   = errors.New("pipe.Apply(...) not accept function at the first arg")
+	errApplyNotAcceptArgs = errors.New("pipe.Apply(...) given function could not accept any arg")
+	errApplyReturnVoid    = errors.New("pipe.Apply(...) given function has void return value")
+	errApplyMultiReturn   = errors.New("pipe.Apply(...) given function has multiple return values")
 )
 
 func Apply(fn interface{}, args ...interface{}) *applyFn {
@@ -26,19 +26,19 @@ type applyFn struct {
 
 func (applyFn *applyFn) validateDeclaration() error {
 	if applyFn.fnCandidateValue.Kind() != reflect.Func {
-		return ErrApplyNotAcceptFn
+		return errApplyNotAcceptFn
 	}
 
 	if applyFn.fnCandidateValue.Type().NumIn() == 0 {
-		return ErrApplyNotAcceptArgs
+		return errApplyNotAcceptArgs
 	}
 
 	if applyFn.fnCandidateValue.Type().NumOut() == 0 {
-		return ErrApplyReturnVoid
+		return errApplyReturnVoid
 	}
 
 	if applyFn.fnCandidateValue.Type().NumOut() > 1 {
-		return ErrApplyMultiReturn
+		return errApplyMultiReturn
 	}
 
 	return nil
