@@ -13,6 +13,17 @@ go get -u github.com/parinpan/pipe
 See the full example here: https://github.com/parinpan/pipe/blob/master/example/pipe_implementation.go
 ```golang
 result := pipe.Do(
+  pipe.Apply(funcA),
+  pipe.Apply(funcB),
+  pipe.Apply(funcC),
+  pipe.Apply(funcD),
+)
+
+fmt.Printf("%+v\n", result)
+
+// more advanced usage
+
+result := pipe.Do(
   pipe.Apply(getRestaurants),
   pipe.Apply(getFoodsWithFilter, 10, pipe.Pass(), 5),
   pipe.Apply(getFoodPrices),
