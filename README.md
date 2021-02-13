@@ -6,7 +6,7 @@ Pipe is a clone of Clojure's Threading Macros concept. It offers simplicity to c
 
 ## Installation
 ```
-go get -u https://github.com/parinpan/pipe
+go get -u github.com/parinpan/pipe
 ```
 
 ## Usage
