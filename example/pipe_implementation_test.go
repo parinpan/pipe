@@ -6,23 +6,29 @@ import (
 )
 
 func Benchmark(b *testing.B) {
+	fn := func(prices []int) int {
+		var totalPrice = 0
+
+		for _, price := range prices {
+			totalPrice += price
+		}
+
+		return totalPrice
+	}
+
 	b.Run("ExecutedWithoutPipe", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			isFoodHasExactName(
-				getFoodWithHighestPrice(
-					getFoodsFromRestaurant(
-						getMcDonaldFromRestaurants(RestaurantList))),
-				"BigMac")
+			getFoodTotalPriceText(fn(getFoodPrices(getFoodsWithFilter(10, getRestaurants(), 5))))
 		}
 	})
 
 	b.Run("ExecutedWithPipe", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			pipe.Do(
-				pipe.Apply(getMcDonaldFromRestaurants, RestaurantList),
-				pipe.Apply(getFoodsFromRestaurant),
-				pipe.Apply(getFoodWithHighestPrice),
-				pipe.Apply(isFoodHasExactName, pipe.Pass(), "BigMac"))
+				pipe.Apply(getRestaurants),
+				pipe.Apply(getFoodsWithFilter, 10, pipe.Pass(), 5),
+				pipe.Apply(getFoodPrices),
+				pipe.Apply(getFoodTotalPriceText, pipe.Pass(fn)))
 		}
 	})
 }
