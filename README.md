@@ -2,7 +2,7 @@
 	<img src="https://user-images.githubusercontent.com/14908455/107840608-caf6a700-6de6-11eb-813d-24dbc1e63981.png" width="150"/>
 </p>
 
-Pipe is a clone of Clojure's Threading Macros concept. It offers simplicity to construct a series of functions execution in a syntactic sugar way.
+Pipe is a clone of Clojure's Threading Macros concept. It offers simplicity to construct a series of function executions in a syntactic sugar way.
 
 ## Installation
 ```
